@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+
+
+set -eu
+
+[[ "${RD_JOB_LOGLEVEL:-}" == "DEBUG" ]] && set -vx
+
+syntax_error() { echo >&2 "SYNTAX: $*"; exit 2; }
+
+(( $# < 1 )) && {
+   syntax_error "$0 <arguments>"
+}
+
+# Read script arguments
+declare -ar ARGUMENTS=("$@")
+
+# check requirements and script contents are given
+[[ -z "${RD_CONFIG_REQUIREMENTS:-}" ]] && {
+   syntax_error "RD_CONFIG_REQUIREMENTS environment variable unset."
+}
+[[ -z "${RD_CONFIG_SCRIPT:-}" ]] && {
+   syntax_error "RD_CONFIG_SCRIPT environment variable unset."
+}
+
+
+# create directory for virtual env, clear after execution
+tmp_folder=$(mktemp -dt "p3_venv_XXXX")
+trap 'rm -rf "$tmp_folder"' EXIT;
+
+cd "$tmp_folder"
+# create virtual env in temp_folder
+python3 -m venv "$tmp_folder"
+# spit requirements and script file into the temp_folder
+scriptfile="$tmp_folder/script.py"
+requirements="$tmp_folder/requirements.txt"
+
+# Write user defined requirements and script into file.
+cat > "$requirements" <<< "$RD_CONFIG_REQUIREMENTS"
+cat > "$scriptfile" <<< "$RD_CONFIG_SCRIPT"
+
+# active venv
+source "$tmp_folder/bin/activate"
+# pip install whell to build requirements, and install requirements
+pip3 install wheel
+pip3 install -r requirements.txt
+
+
+# execute the python script, and store result code
+python3 "$scriptfile" ${ARGUMENTS[@]}
+# Done.

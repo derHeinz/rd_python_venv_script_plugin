@@ -1,0 +1,42 @@
+name: py3-venv-local-node-step
+rundeckPluginVersion: 1.2
+author: "Heinz Serfas"
+date: "2022-01-31T22:00:00Z"
+version: "0.7"
+description: Step plugin to run python3 using venv
+rundeckCompatibilityVersion: 3.x
+targetHostCompatibility: unix
+license: Apache 2.0
+tags:
+  - script
+  - WorkflowStep
+providers:
+  - name: py3-venv-local-node-step
+    service: WorkflowNodeStep
+    title: 'python3 venv plugin'
+    description: 'Run inline python3 script locally for each node, creating venv and install requirements.'
+    plugin-type: script
+    script-interpreter: /usr/bin/env bash
+    script-file: local-python-venv
+    script-args: ${config.arguments}
+    config:
+      - type: String
+        name: requirements
+        title: Requirements
+        description: "pip packages going to be installed using pip, like requirements.txt"
+        required: true        
+        renderingOptions:
+          displayType: MULTI_LINE
+      - type: String
+        name: script
+        title: Script
+        description: "python3 script"
+        required: true        
+        renderingOptions:
+          displayType: CODE
+          codeSyntaxMode: PYTHON
+      - type: String
+        name: arguments
+        title: Arguments
+        description: "optional command line arguments"
+        required: false
